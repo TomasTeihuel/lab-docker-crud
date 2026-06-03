@@ -1,0 +1,61 @@
+\documentclass[12pt]{article}
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\geometry{margin=2.5cm}
+
+\title{Laboratorio Practico N2: Implementacion de Stack Web con Docker}
+\author{Integrantes del grupo}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Introduccion}
+Este informe presenta el despliegue de una aplicacion web dinamica con operaciones CRUD usando Docker. La solucion utiliza un contenedor PHP con Apache para la aplicacion y un contenedor MariaDB para la base de datos.
+
+\section{Desarrollo}
+La arquitectura se compone de dos servicios definidos en \texttt{docker-compose.yml}. El servicio \texttt{app} se construye desde un \texttt{Dockerfile} propio y se conecta al servicio \texttt{db} mediante una red virtual de Docker. La base de datos usa un volumen persistente llamado \texttt{db\_data}.
+
+\subsection{Construccion}
+Agregar captura del comando:
+\begin{verbatim}
+docker compose build
+\end{verbatim}
+
+\subsection{Ejecucion}
+Agregar captura de los comandos:
+\begin{verbatim}
+docker compose up -d
+docker ps
+\end{verbatim}
+
+\subsection{Logs y red}
+Agregar captura del comando:
+\begin{verbatim}
+docker logs laboratorio_db
+\end{verbatim}
+
+\subsection{Prueba funcional}
+Agregar captura de la aplicacion funcionando en:
+\begin{verbatim}
+http://localhost:8080
+\end{verbatim}
+
+\section{Configuracion Docker}
+El contenedor de aplicacion usa la imagen \texttt{php:8.3-apache} y habilita \texttt{pdo\_mysql}. El contenedor de base de datos usa la imagen oficial \texttt{mariadb:11.4}. Las credenciales se cargan desde variables de entorno y la informacion de la base de datos persiste mediante un volumen.
+
+\section{Conclusion}
+La implementacion permite desplegar una aplicacion CRUD de forma reproducible usando Docker Compose. La separacion entre aplicacion y base de datos facilita la administracion, el despliegue y la explicacion tecnica de redes, volumenes e imagenes.
+
+\section{Anexos}
+\begin{itemize}
+    \item Link repositorio GitHub: agregar URL.
+    \item Link documento Overleaf: agregar URL.
+    \item Archivos principales: \texttt{Dockerfile}, \texttt{docker-compose.yml}, \texttt{init.sql}, \texttt{README.md}.
+\end{itemize}
+
+\end{document}
