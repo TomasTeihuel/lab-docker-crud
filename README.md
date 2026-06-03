@@ -52,11 +52,6 @@ Abrir la aplicacion:
 http://localhost:8080
 ```
 
-Si se accede desde otra maquina de la red, usar la IP del servidor Debian:
-
-```text
-http://192.168.100.67:8080
-```
 
 ## Operaciones CRUD
 
