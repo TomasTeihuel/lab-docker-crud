@@ -5,57 +5,213 @@
 \usepackage{geometry}
 \usepackage{graphicx}
 \usepackage{hyperref}
-\geometry{margin=2.5cm}
+\usepackage{xcolor}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{float}
+\geometry{letterpaper, margin=2.5cm}
 
-\title{Laboratorio Practico N2: Implementacion de Stack Web con Docker}
-\author{Tomas Teihuel}
-\date{\today}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue
+}
+
+\newcommand{\placeholder}[1]{
+    \begin{center}
+        \fbox{
+            \begin{minipage}[c][4.2cm][c]{0.88\textwidth}
+                \centering
+                \textit{#1}
+            \end{minipage}
+        }
+    \end{center}
+}
+
+\title{
+    \textbf{Laboratorio Práctico N°2}\\
+    \large Implementación de Stack Web con Docker
+}
+\author{
+    Gerardo Cerón\\
+    Joaquín Lespai\\
+    Tomás Teihuel
+}
+\date{3 de junio de 2026}
 
 \begin{document}
+
 \maketitle
 
-\section{Introduccion}
-Este informe presenta el despliegue de una aplicacion web dinamica con operaciones CRUD usando Docker. La solucion utiliza un contenedor PHP con Apache para la aplicacion y un contenedor MariaDB para la base de datos.
+\begin{center}
+    \textbf{Departamento de Ciencias de la Ingeniería}\\
+    Ingeniería Civil en Informática\\
+    Taller de Ingeniería Informática\\
+    Universidad de Los Lagos, Campus Meyer, Osorno
+\end{center}
+
+\newpage
+\tableofcontents
+\newpage
+
+\section{Introducción}
+
+El presente informe documenta el despliegue de una aplicación web dinámica basada en PHP y MariaDB, ejecutada mediante contenedores Docker y orquestada con Docker Compose. El objetivo del laboratorio fue implementar un stack web reproducible que permitiera separar la lógica de aplicación, la base de datos, la red de comunicación y la persistencia de información.
+
+La aplicación desarrollada permite realizar operaciones CRUD: crear, leer, actualizar y eliminar registros desde una interfaz web. Para cumplir con los requisitos técnicos, se definió un contenedor de aplicación construido desde un \texttt{Dockerfile}, un contenedor de base de datos basado en una imagen oficial de MariaDB, un volumen para conservar datos y una red virtual de Docker para aislar la comunicación entre servicios.
 
 \section{Desarrollo}
-La arquitectura se compone de dos servicios definidos en \texttt{docker-compose.yml}. El servicio \texttt{app} se construye desde un \texttt{Dockerfile} propio y se conecta al servicio \texttt{db} mediante una red virtual de Docker. La base de datos usa un volumen persistente llamado \texttt{db\_data}.
 
-\subsection{Construccion}
-Agregar captura del comando:
+\subsection{Arquitectura de la solución}
+
+La solución se organizó en una estructura de archivos compatible con la rúbrica del laboratorio. El servicio web se encuentra en la carpeta \texttt{app/}, la inicialización de la base de datos en \texttt{db/}, y la orquestación general en el archivo \texttt{docker-compose.yml}.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{>{\bfseries}p{4cm} p{10cm}}
+\toprule
+Elemento & Descripción \\
+\midrule
+\texttt{app} & Contenedor PHP 8.3 con Apache. Incluye la aplicación web CRUD y la extensión \texttt{pdo\_mysql} para conectarse con MariaDB. \\
+\texttt{db} & Contenedor MariaDB 11.4 construido desde una imagen oficial. Al iniciar, ejecuta el archivo \texttt{db/init.sql}. \\
+\texttt{db\_data} & Volumen persistente usado para conservar los datos de la base de datos aunque los contenedores se reinicien. \\
+\texttt{laboratorio\_net} & Red virtual tipo bridge que permite la comunicación interna entre la aplicación y la base de datos. \\
+\bottomrule
+\end{tabular}
+\caption{Componentes principales del stack Docker.}
+\end{table}
+
+\subsection{Construcción}
+
+La construcción de la imagen de la aplicación se realizó con el siguiente comando:
+
 \begin{verbatim}
 docker compose build
 \end{verbatim}
 
-\subsection{Ejecucion}
-Agregar captura de los comandos:
+Este comando lee el \texttt{Dockerfile} ubicado en la carpeta \texttt{app/}. Durante el proceso se descarga la imagen base \texttt{php:8.3-apache}, se instala la extensión \texttt{pdo\_mysql} y se copia el archivo \texttt{index.php} al directorio de publicación de Apache.
+
+\placeholder{Insertar captura del comando docker compose build mostrando la creación correcta de la imagen.}
+
+\subsection{Ejecución}
+
+Una vez construida la imagen, los servicios se levantaron en segundo plano mediante:
+
 \begin{verbatim}
 docker compose up -d
+\end{verbatim}
+
+El parámetro \texttt{-d} permite ejecutar los contenedores en modo desacoplado. Luego se verificó el estado de los contenedores con:
+
+\begin{verbatim}
 docker ps
 \end{verbatim}
 
+En esta etapa se debe observar que los contenedores \texttt{laboratorio\_app} y \texttt{laboratorio\_db} se encuentren activos. Además, el puerto \texttt{8080} del equipo anfitrión queda asociado al puerto \texttt{80} del contenedor de aplicación.
+
+\placeholder{Insertar captura de docker compose up -d y docker ps con los contenedores activos.}
+
 \subsection{Logs y red}
-Agregar captura del comando:
+
+Para comprobar que la base de datos inició correctamente, se revisaron los logs del contenedor de MariaDB:
+
 \begin{verbatim}
 docker logs laboratorio_db
 \end{verbatim}
 
+El estado saludable del servicio indica que MariaDB terminó su inicialización y que la aplicación puede conectarse usando el nombre de servicio \texttt{db}. Esta comunicación no requiere exponer el puerto de la base de datos hacia el exterior, ya que ambos contenedores se encuentran dentro de la red interna \texttt{laboratorio\_net}.
+
+\placeholder{Insertar captura de los logs del contenedor laboratorio\_db mostrando MariaDB iniciado correctamente.}
+
 \subsection{Prueba funcional}
-Agregar captura de la aplicacion funcionando en:
+
+La aplicación fue probada desde el navegador usando la dirección:
+
 \begin{verbatim}
 http://localhost:8080
 \end{verbatim}
 
-\section{Configuracion Docker}
-El contenedor de aplicacion usa la imagen \texttt{php:8.3-apache} y habilita \texttt{pdo\_mysql}. El contenedor de base de datos usa la imagen oficial \texttt{mariadb:11.4}. Las credenciales se cargan desde variables de entorno y la informacion de la base de datos persiste mediante un volumen.
+En el caso de acceder desde el equipo anfitrión hacia la máquina virtual Debian, se utilizó la IP de la VM:
 
-\section{Conclusion}
-La implementacion permite desplegar una aplicacion CRUD de forma reproducible usando Docker Compose. La separacion entre aplicacion y base de datos facilita la administracion, el despliegue y la explicacion tecnica de redes, volumenes e imagenes.
+\begin{verbatim}
+http://192.168.100.67:8080
+\end{verbatim}
 
+La interfaz permite acceder a un menú principal con las operaciones requeridas por el laboratorio: crear registros, leer registros, modificar registros existentes y borrar registros. Estas acciones validan la conexión entre la aplicación PHP y la base de datos MariaDB.
+
+\placeholder{Insertar captura de la página principal con la tabla de registros.}
+\placeholder{Insertar captura de creación, edición o eliminación de un registro para evidenciar el CRUD.}
+
+\section{Configuración Docker}
+
+\subsection{Dockerfile}
+
+El archivo \texttt{app/Dockerfile} define la imagen de la aplicación:
+
+\begin{verbatim}
+FROM php:8.3-apache
+
+RUN docker-php-ext-install pdo pdo_mysql
+
+WORKDIR /var/www/html
+COPY index.php /var/www/html/index.php
+
+EXPOSE 80
+\end{verbatim}
+
+Esta configuración utiliza una imagen oficial de PHP con Apache, instala la extensión necesaria para conectarse a MySQL/MariaDB y copia el código fuente de la aplicación al directorio servido por Apache.
+
+\subsection{Docker Compose}
+
+El archivo \texttt{docker-compose.yml} define dos servicios principales. El servicio \texttt{app} construye la aplicación y publica el puerto \texttt{8080}; el servicio \texttt{db} levanta MariaDB, carga variables de entorno y usa un volumen persistente. También se incluye un \textit{healthcheck} para esperar a que la base de datos esté disponible antes de iniciar completamente el servicio web.
+
+\subsection{Persistencia y aislamiento}
+
+La persistencia se implementa mediante el volumen \texttt{db\_data}, montado en \texttt{/var/lib/mysql}. Esto evita que la información se pierda al detener o recrear los contenedores. El aislamiento se logra mediante la red \texttt{laboratorio\_net}, donde los servicios se comunican usando nombres internos definidos por Docker Compose.
+
+\section{Conclusión}
+
+La implementación del laboratorio permitió integrar una aplicación web dinámica en PHP con una base de datos MariaDB mediante Docker Compose. La separación entre el contenedor de aplicación y el contenedor de base de datos favorece una arquitectura más ordenada, reproducible y fácil de administrar.
+
+El uso de un volumen persistente permitió conservar los registros creados desde la interfaz web, incluso después de reiniciar los contenedores. Asimismo, la red virtual de Docker permitió aislar la comunicación interna entre servicios, evitando exponer innecesariamente la base de datos.
+
+En términos funcionales, la aplicación cumple con el objetivo principal del laboratorio al permitir crear, leer, actualizar y eliminar registros. Como mejoras futuras, se podrían incorporar autenticación de usuarios, validaciones más robustas, pruebas automatizadas y un diseño visual más avanzado para la interfaz.
+
+\appendix
 \section{Anexos}
+
+\subsection{Estructura del repositorio}
+
+\begin{verbatim}
+app/
+  index.php
+  Dockerfile
+db/
+  init.sql
+informe/
+  proyecto.tex
+  proyecto.pdf
+.env.example
+.gitignore
+docker-compose.yml
+README.md
+\end{verbatim}
+
+\subsection{Comandos usados en la demostración}
+
+\begin{verbatim}
+cp .env.example .env
+docker compose build
+docker compose up -d
+docker ps
+docker logs laboratorio_db
+\end{verbatim}
+
+\subsection{Enlaces}
+
 \begin{itemize}
-    \item Link repositorio GitHub: \url{https://github.com/TomasTeihuel/lab-docker-crud}
-    \item Link documento Overleaf: agregar URL.
-    \item Archivos principales: \texttt{Dockerfile}, \texttt{docker-compose.yml}, \texttt{init.sql}, \texttt{README.md}.
+    \item Repositorio GitHub: \url{https://github.com/TomasTeihuel/lab-docker-crud}
+    \item Documento LaTeX en Overleaf: agregar enlace cuando el proyecto sea importado a Overleaf.
 \end{itemize}
 
 \end{document}
