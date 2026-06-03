@@ -1,402 +1,242 @@
+\documentclass[12pt]{report}
+\def\TITULO{Laboratorio Práctico N°2\\Implementación de Stack Web con Docker}
+\def\subtitulo{Implementación de Stack Web con Docker}
+\def\autora{Gerardo Cerón}
+\def\autorb{Joaquín Lespai}
+\def\autorc{Tomás Teihuel}
+\def\asignatura{Taller de Ingeniería Informática}
+\def\campus{Campus Meyer, Osorno}
+\def\carrera{Ingeniería Civil en Informática}
+\input{Macros}
+
+\lstset{language=bash}
+
+\begin{document}
+
+%%%%%%%%%%%PORTADA%%%%%%%%%%%%%%%%%%%%%
+\maketitle
+
+\cleardoublepage
+\pagenumbering{roman}
+\setcounter{page}{1}
+
+\tableofcontents
+
+\cleardoublepage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\chapter{}
+\section{Introducción}
+
+Este informe documenta el despliegue de una aplicación web dinámica basada en PHP y MariaDB, ejecutada mediante contenedores Docker y orquestada con Docker Compose. El objetivo del laboratorio fue implementar un stack web reproducible, capaz de separar la lógica de aplicación, la base de datos, la persistencia de información y la comunicación entre servicios.
+
+La solución desarrollada cumple con las operaciones CRUD solicitadas: crear, leer, actualizar y eliminar registros desde una interfaz web. Para ello, se utilizó un contenedor de aplicación construido desde un \texttt{Dockerfile}, un contenedor de base de datos basado en una imagen oficial de MariaDB, un volumen persistente y una red virtual administrada por Docker Compose.
 
 \newpage
-\section{Ejemplos}
-\subsection{Códigos de Programación}
-En esta sección se presenta la inserción del Código \ref{CodC}, El Código \ref{CodC}. El Código \ref{codP}. El Código \ref{codL}.
+\section{Desarrollo}
 
+La arquitectura se compone de dos servicios definidos en el archivo \texttt{docker-compose.yml}. El servicio \texttt{app} corresponde a la aplicación web PHP con Apache, mientras que el servicio \texttt{db} ejecuta MariaDB. Ambos servicios se comunican a través de la red \texttt{laboratorio\_net}, y la base de datos conserva su información mediante el volumen \texttt{db\_data}.
 
-
-\lstset{language=C}
-\begin{lstlisting}[caption = C\'odigo en C de una sumatoria, label = CodC]
-#include <stdio.h>
-#include <stdlib.h>
-/* Algoritmo para realizar la sumatoria */
-/* S=2+4+6+...+2n */
-
-int main(void){
-	int i,s,n;
-
-	/* inicializar el valor de la sumatoria en 0 */
-	s=0;
-	printf("ingrese la cantidad de elementos de la sumatoria=");
-	scanf("%d", &n);
-	/* Realiza la iteracion n veces, y el indice "i" lo multiplica por */
-	/* 2 y lo va sumando a s*/
-	for(i=1;i<=n;i++){
-		s = s+ 2*i;
-	}
-	printf("el resultado de la sumatoria es=%d\n",s);
-
-	return (0);
-}
-\end{lstlisting}
-
-\lstset{language=SQL}
-   \vspace{-0.8cm}
-\begin{lstlisting}[label=codigo1, caption=Ejemplo de SQL]
--- Database: acuario
-
--- DROP DATABASE acuario;
-
-CREATE DATABASE acuario
-  WITH OWNER = postgres;
-
-
-CREATE TABLE especies(
-    sno integer PRIMARY KEY,
-    nombre character varying(20),
-    alimento character varying(20)
-);
-
-CREATE TABLE tanques(
-    tno integer PRIMARY KEY,
-    nombre_tanque character varying(20),
-    color_tanque character varying(20),
-    volumen  integer NOT NULL
-);
-
-CREATE TABLE peces(
-    pno integer PRIMARY KEY,
-    nombre_peces character varying(20),
-    color_peces character varying(20),
-    tno integer NOT NULL,
-    sno integer NOT NULL,
-    FOREIGN KEY (tno) REFERENCES tanques (tno) ON UPDATE CASCADE ON DELETE CASCADE,
-    FOREIGN KEY (sno) REFERENCES especies (sno) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-CREATE TABLE eventos(
-    eno integer PRIMARY KEY,
-    pno integer NOT NULL,
-    fecha date,
-    FOREIGN KEY (pno) REFERENCES peces (pno) ON UPDATE CASCADE ON DELETE CASCADE
-);
-
-
-
-INSERT INTO especies VALUES(17,'delfin','arenque');
-INSERT INTO especies VALUES(22,'tiburon','cualquier cosa');
-INSERT INTO especies VALUES(74,'olomina','gusano');
-INSERT INTO especies VALUES(93,'ballena','mantequilla de mani');
-INSERT INTO especies VALUES(100,'pez espada','gusano');
-INSERT INTO especies VALUES(120,'pez globo','gusano');
-
--- select * from especies
-
-INSERT INTO tanques VALUES(55,'charco','verde',300);
-INSERT INTO tanques VALUES(42,'letrina','azul',100);
-INSERT INTO tanques VALUES(35,'laguna','rojo',400);
-INSERT INTO tanques VALUES(85,'letrina','azul',100);
-INSERT INTO tanques VALUES(38,'playa','azul',200);
-INSERT INTO tanques VALUES(44,'laguna','verde',200);
-
--- select * from tanques
-
-
-INSERT INTO peces VALUES (164, 'charlie', 'naranjo', 42, 74);
-INSERT INTO peces VALUES (347, 'flipper', 'negro', 35, 17);
-INSERT INTO peces VALUES (228, 'killer', 'blanco', 42, 22);
-INSERT INTO peces VALUES (281, 'albert', 'rojo', 55, 17);
-INSERT INTO peces VALUES (119, 'bonnie', 'azul', 42, 22);
-INSERT INTO peces VALUES (388, 'cory', 'morado', 35, 93);
-INSERT INTO peces VALUES (700, 'maureen', 'blanco', 44, 100);
-INSERT INTO peces VALUES (800, 'beni', 'rojo', 55, 17);
-INSERT INTO peces VALUES (900, 'nemo', 'rojo', 44, 74);
-INSERT INTO peces VALUES (150, 'vicky', 'rojo', 55, 100);
-INSERT INTO peces VALUES (160, 'mati', 'amarillo', 42, 100);
-INSERT INTO peces VALUES (110, 'rafa', 'azul', 85, 100);
-INSERT INTO peces VALUES (222, 'jimmy', 'amarillo', 38, 100);
-INSERT INTO peces VALUES (144, 'bisho', 'rojo', 42, 93);
-INSERT INTO peces VALUES (125, 'chris', 'azul', 38, 93);
-INSERT INTO peces VALUES (183, 'sable', 'amarillo', 44, 93);
-INSERT INTO peces VALUES (241, 'taz', 'rojo', 55, 93);
-INSERT INTO peces VALUES (300, 'baltazar', 'azul', 85, 100);
-INSERT INTO peces VALUES (200, 'cash', 'azul', 85, 100);
-INSERT INTO peces VALUES (424, 'bandido', 'verde', 35, 100);
-INSERT INTO peces VALUES (454, 'romo', 'blanco', 85, 93);
-
-
--- select * from peces
-
-INSERT INTO eventos VALUES
-(3456 , 347 , '2010-01-26'),
-(6653 , 164 , '2010-05-14'),
-(5644 , 347 , '2010-05-15'),
-(5645 , 347 , '2010-05-30'),
-(6789 , 281 , '2010-04-30'),
-(5211 , 228 , '2010-08-20'),
-(6719 , 700 , '2010-10-22'),
-(4555 , 164 , '2011-11-03'),
-(9647 , 281 , '2011-12-06'),
-(5347 , 281 , '2011-01-01');
-
---INSERT INTO eventos VALUES (3456, 164, '2010-01-26');
---INSERT INTO eventos VALUES (6653, 347, '2010-05-14');
---INSERT INTO eventos VALUES (5644, 347, '2010-05-15');
---INSERT INTO eventos VALUES (5645, 347, '2010-05-30');
---INSERT INTO eventos VALUES (6789, 228, '2010-04-30');
---INSERT INTO eventos VALUES (5211, 119, '2010-08-20');
---INSERT INTO eventos VALUES (6719, 388, '2010-10-22');
---INSERT INTO eventos VALUES (4555, 164, '2011-11-03');
---INSERT INTO eventos VALUES (9647, 281, '2011-12-21');
---INSERT INTO eventos VALUES (5369, 281, '2011-01-01');
-
-
--- ALTER TABLE tanques ADD medida character varying(2);
-
--- UPDATE tanques SET medida = 'ml';
-
--- select * from tanques;
-
--- ALTER TABLE tanques DROP medida;
-
--- SELECT * FROM especies;
--- SELECT * FROM tanques;
-\end{lstlisting}\vspace{-0.3cm}
-
-
-
-
-\lstset{language=LISP}
-\begin{lstlisting}[caption= C\'odigo LISP de una Lista, label = codL]
-(define (length x)
-    (if (list? x) (length-aux x)
-        (error "x no es una lista")))
-
-(define (length-aux x)
-    (if (null? x) 0 (+1 (length-aux (cdr x)))))
-\end{lstlisting}
-
-
-
-
-\lstset{language=PROLOG}
-\begin{lstlisting}[caption= C\'odigo PROLOG de un \'arbol geneal\'ogico, label=codP]
-% Arbol genealogico version 1.
-% padre(A,B) significa que B es el padre de A.
-
-padre(juan,alberto).
-padre(luis,alberto).
-padre(alberto,leoncio).
-padre(geronimo,leoncio).
-padre(luisa,geronimo).
-
-% Ahora se define las condiciones para que dos individuos sean hermanos hermano(A,B), significa que A es hermano de B.
-hermano(A,B) :-
-    padre(A,P),
-    padre(B,P),
-    A \== B.
-% Ahora se define el parentesco abuelo-nieto.  nieto(A,B) significa que A es nieto de B.
-nieto(A,B) :-
-    padre(A,P),
-    padre(P,B).
-\end{lstlisting}
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-
-   \lstset{language=java}
-\begin{lstlisting}[caption= C\'odigo JAVA de una clase, label=codj]
-class <Nombre>{
-   public static void main(String[] args){
-      instrucciones;
-   }
-}
-\end{lstlisting}
-
-
-
-
-
-
-
-
-\subsection{Entornos}
-Ahora presentamos los entornos Ejemplo \ref{ejemplo1}, Solución \ref{solucion1}, Prueba \ref{prueba1}, Definición \ref{definir1}, Demostración \ref{demo1}, Observación \ref{obs1}.
-
-\begin{ejemplo}\label{ejemplo1}
-\lipsum[1] %reemplazar esta linea
-\end{ejemplo}
-
-\begin{solucion}\label{solucion1}
-\lipsum[1] %reemplazar esta linea
-\end{solucion}
-
-\begin{definir}\label{definir1}
-\lipsum[1] %reemplazar esta linea
-\end{definir}
-
-\begin{prueba}\label{prueba1}
-\lipsum[1] %reemplazar esta linea
-\end{prueba}
-
-\begin{demostracion} \label{demo1}
-\lipsum[1] %reemplazar esta linea
-\end{demostracion}
-
-\begin{observacion}\label{obs1}
-\lipsum[1] %reemplazar esta linea
-\end{observacion}
-
-\subsection{Tablas}
-Por otro lado también se muestra un ejemplo de Tabla \ref{tabla1} llenada, además de la Tabla \ref{tabla2} que tiene 3 columnas y filas con barras, la Tabla \ref{tabla3} que tiene 4 filas y 4 columnas sin barras, por último la Tabla \ref{tabla4} posee títulos que usan más de una columna y fila.
-
-\begin{table}[hbt]
-\begin{center}
-\begin{tabular}{|l|p{10cm}|}\hline
-\multicolumn{2}{|c|}{\textbf{Información general}}\\
-\hline
-\textbf{Modelo de desarrollo}&desarrollo	Software libre y código abierto\\
-\textbf{Última versión estable}&Kernel: 4.11.3 (info) 25 de mayo de 2017 (10 días)\\
-\textbf{Última versión en pruebas}&	4.12.rc2 (info) 22 de mayo de 2017 (13 días)\\
-\textbf{Escrito en}&	C\\
-\textbf{Núcleo}&	Núcleo Linux\\
-\textbf{Plataformas soportadas}	& DEC Alpha, ARM, AVR32, Blackfin, ETRAX CRIS, FR-V, H8/300, Itanium, M32R, m68k, Microblaze, MIPS, MN103, PA-RISC, PowerPC, s390, S+core, SuperH, SPARC, TILE64, Unicore32, x86, Xtensa\\
-\textbf{Licencia}	&GNU General Public License y otras\\
-\textbf{Estado actual}	&En desarrollo\\
-\textbf{En español}	&Sí\\
-\hline
-\end{tabular}
-\end{center}
-\caption{Información General de GNU/Linux}
-\label{tabla1}
-\end{table}
-
-
-\begin{table}[hbt]
-    \centering
-    \begin{tabular}{|c|c|c|}
-    \hline
-         &  & \\\hline
-         &  & \\\hline
-         &  & \\\hline
-    \end{tabular}
-    \caption{Ejemplo tabla con barras}
-    \label{tabla2}
-\end{table}
-
-
-\begin{table}[htb]
-    \centering
-    \begin{tabular}{cccc}
-        1 &2  & 3 & 4\\
-        5 & 6 & 7 & 8\\
-       9  & 10 &11 & 12\\
-    \end{tabular}
-    \caption{Ejemplo tabla con barras}
-    \label{tabla3}
-\end{table}
-
-\begin{table}[htbp]
- \centering
- \begin{tabular}{|c|c|c|c|c|c|}\hline
-  \textbf{S}&\textbf{SCT} &\textbf{Asignatura}&\multicolumn{2}{|c|}{\textbf{Total Horas}}&\textbf{Previatura} \\\cline{4-5}
-&&&\textbf{TP}&\textbf{TA}&\\\hline
-\multirow{5}{*}&a&b&c&d&r\\\hline
-\end{tabular}
-    \caption{Títulos de varias columnas y filas}
-    \label{tabla4}
-\end{table}
-
-
-
-\subsection{Formulas Matemáticas}
-A continuación se presentan entornos matemáticos con la Ecuación \ref{ecuacion1} y la Ecuación \ref{ecuacion2}.
-
-\begin{equation}\label{ecuacion1}
-C_L=\frac{(S_{22}-\delta S_{11}^*)^*}{|\varPi S_{22}|^2=-|\pi|^2}
-\end{equation}
-
-\begin{equation}\label{ecuacion2}
-R_S=\frac{\sqrt{1-g_s}\cdot (1-|S_{11}|^2)}{1-(1-g_s)\cdot|S_{11}|^2}
-\end{equation}
-
-\subsection{Items, Descripciones y Enumeraciones}
-Ejemplo de \texttt{itemize}:
-
-  \begin{itemize}
-  \item Item sin números
-    \begin{itemize}
-  \item nivel 2
-    \begin{itemize}
-    \item nivel 3
-    \end{itemize}
-  \end{itemize}
-\end{itemize}
-
-Ejemplo de \texttt{enumerate}:
-\begin{enumerate}
-  \item Item Numerado
-    \begin{enumerate}
-     \item Nivel 2
-    \begin{enumerate}
-      \item Nivel 3
-    \end{enumerate}
-  \end{enumerate}
-\end{enumerate}
-
-Ejemplo de \texttt{description}:
-\begin{description}
-  \item[Descripción] Texto descrito
-  \begin{description}
-  \item[Nivel 2] Texto
-\end{description}
-\end{description}
-
-Ejemplo de uso intercalado
-
-\begin{description}
-  \item[Descripción] Texto descrito
-  \begin{itemize}
-  \item Nivel 2
-  \begin{enumerate}
-      \item Nivel 3
-    \end{enumerate}
-\end{itemize}
-\end{description}
-
-
-
-\subsection{Figuras}
-En la Figura \ref{foto1} se muestra el logo de la Universidad. En cambio en la Figura \ref{figuras} se pueden apreciar 3 imágenes, la primera sería la Figura \ref{fig1}, la segunda la Figura \ref{fig2} y la tercera la Figura \ref{fig3}.
-
-\begin{figure}[htb]
-    \centering
-    \includegraphics[width=0.5\linewidth]{images/Logo-ULagos.png}
-    \caption{Logo Universidad de Los Lagos}
-    \label{foto1}
-\end{figure}
-
-\begin{figure}[htb]
+\begin{table}[H]
 \centering
-\begin{subfigure}{0.31\textwidth}\centering
-    \includegraphics[width=\textwidth]{images/Logo-ULagos.png}
-    \caption{Primera figura}
-    \label{fig1}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.31\textwidth}\centering
-    \includegraphics[width=\textwidth]{images/Logo-ULagos.png}
-    \caption{Segunda figura}
-    \label{fig2}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.31\textwidth}\centering
-    \includegraphics[width=\textwidth]{images/Logo-ULagos.png}
-    \caption{Tercera figura}
-    \label{fig3}
-\end{subfigure}
+\begin{tabular}{|p{3.4cm}|p{10.5cm}|}
+\hline
+\textbf{Componente} & \textbf{Descripción} \\
+\hline
+\texttt{app} & Contenedor PHP 8.3 con Apache. Incluye el código de la aplicación y la extensión \texttt{pdo\_mysql} para conectarse a la base de datos. \\
+\hline
+\texttt{db} & Contenedor MariaDB 11.4 basado en imagen oficial. Inicializa la tabla de contactos mediante \texttt{db/init.sql}. \\
+\hline
+\texttt{db\_data} & Volumen persistente que conserva la información aunque los contenedores sean detenidos o recreados. \\
+\hline
+\texttt{laboratorio\_net} & Red virtual tipo \textit{bridge} que permite aislar la comunicación entre la aplicación y la base de datos. \\
+\hline
+\end{tabular}
+\caption{Componentes principales del stack Docker implementado.}
+\end{table}
 
-\caption{Insertar subfiguras en \LaTeX.}
-\label{figuras}
+\chapter{}
+\section{Construcción}
+
+La construcción de la imagen de la aplicación se realizó con el comando:
+
+\begin{lstlisting}[caption={Construcción de la imagen de aplicación}]
+docker compose build
+\end{lstlisting}
+
+Este comando lee el \texttt{Dockerfile} ubicado en la carpeta \texttt{app/}. Durante el proceso se utiliza la imagen base \texttt{php:8.3-apache}, se instala la extensión \texttt{pdo\_mysql} y se copia el archivo \texttt{index.php} al directorio de publicación de Apache.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{images/build.png}
+\caption{Construcción de la imagen Docker de la aplicación.}
+\label{fig:build}
 \end{figure}
 
-\begin{wrapfigure}{R}{0.5\textwidth}
-  \begin{center}
-    \includegraphics[width=8cm]{images/Logo-ULagos.png}
-  \end{center}
-  \caption{Foto entre texto}
-\label{entretexto}
-\end{wrapfigure}
-A continuación se presenta la Figura \ref{entretexto} entre texto, esta figura debe estar antes del texto y la ubicación puede ser L: izquierda; C: centrado; R: derecha.
-\lipsum[1]
+\section{Ejecución}
 
+Una vez construida la imagen, los contenedores se levantaron en segundo plano mediante:
+
+\begin{lstlisting}[caption={Ejecución de los servicios}]
+docker compose up -d
+docker ps
+\end{lstlisting}
+
+El parámetro \texttt{-d} permite ejecutar los servicios en modo desacoplado. Posteriormente, el comando \texttt{docker ps} verifica que los contenedores \texttt{laboratorio\_app} y \texttt{laboratorio\_db} estén activos. En esta etapa también se confirma la publicación del puerto \texttt{8080}, que redirige hacia el puerto \texttt{80} del contenedor web.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.72\textwidth]{images/compose_up.png}
+\caption{Levantamiento de los contenedores con Docker Compose.}
+\label{fig:composeup}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{images/docker_ps.png}
+\caption{Verificación de contenedores activos mediante \texttt{docker ps}.}
+\label{fig:dockerps}
+\end{figure}
+
+\newpage
+\section{Logs y red}
+
+Para comprobar el inicio correcto de MariaDB, se revisaron los logs del contenedor de base de datos:
+
+\begin{lstlisting}[caption={Revisión de logs de la base de datos}]
+docker logs laboratorio_db
+\end{lstlisting}
+
+Los logs permiten verificar que el servicio de base de datos se inicializó correctamente y quedó disponible para recibir conexiones. La aplicación no necesita conectarse mediante una IP fija, ya que Docker Compose permite utilizar el nombre del servicio \texttt{db} como host interno dentro de la red \texttt{laboratorio\_net}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{images/Docker_logs1.png}
+\caption{Primera parte de los logs del contenedor MariaDB.}
+\label{fig:logs1}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{images/Docker_logs2.png}
+\caption{Segunda parte de los logs del contenedor MariaDB.}
+\label{fig:logs2}
+\end{figure}
+
+\newpage
+\chapter{}
+\section{Prueba funcional}
+
+La aplicación fue probada desde el navegador a través de la dirección:
+
+\begin{lstlisting}[caption={URL de acceso a la aplicación}]
+http://localhost:8080
+\end{lstlisting}
+
+En la máquina virtual Debian también fue posible acceder desde el equipo anfitrión utilizando la IP de la VM y el puerto publicado. La interfaz presenta un menú principal y una tabla de registros, permitiendo demostrar las operaciones de creación, lectura, actualización y eliminación.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.96\textwidth]{images/inicio.png}
+\caption{Pantalla principal de la aplicación CRUD.}
+\label{fig:inicio}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.96\textwidth]{images/crear.png}
+\caption{Formulario para crear un nuevo registro.}
+\label{fig:crear}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.96\textwidth]{images/modificar.png}
+\caption{Modificación de un registro existente.}
+\label{fig:modificar}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.96\textwidth]{images/borrar.png}
+\caption{Eliminación de un registro desde la interfaz web.}
+\label{fig:borrar}
+\end{figure}
+
+\newpage
+\section{Configuración Docker}
+
+\subsection{Dockerfile}
+
+El archivo \texttt{app/Dockerfile} define la imagen de la aplicación. Se utilizó una imagen oficial de PHP con Apache, a la cual se le agregó la extensión \texttt{pdo\_mysql}. Esta extensión permite que la aplicación PHP se conecte a MariaDB usando PDO.
+
+\begin{lstlisting}[caption={Dockerfile de la aplicación}]
+FROM php:8.3-apache
+
+RUN docker-php-ext-install pdo pdo_mysql
+
+WORKDIR /var/www/html
+COPY index.php /var/www/html/index.php
+
+EXPOSE 80
+\end{lstlisting}
+
+\subsection{Docker Compose}
+
+El archivo \texttt{docker-compose.yml} vincula los servicios \texttt{app} y \texttt{db}. La aplicación expone el puerto \texttt{8080} hacia el navegador, mientras que la base de datos se mantiene dentro de la red interna y utiliza variables de entorno para definir usuario, contraseña y nombre de la base de datos.
+
+\begin{lstlisting}[caption={Comandos principales de despliegue}]
+cp .env.example .env
+docker compose build
+docker compose up -d
+docker ps
+docker logs laboratorio_db
+\end{lstlisting}
+
+\subsection{Persistencia y aislamiento}
+
+La persistencia se implementó mediante el volumen \texttt{db\_data}, montado sobre \texttt{/var/lib/mysql}. Gracias a esto, los datos creados desde la aplicación se conservan incluso si los contenedores son detenidos o recreados. El aislamiento se logró mediante la red virtual \texttt{laboratorio\_net}, evitando exponer innecesariamente el servicio de base de datos fuera del entorno Docker.
+
+\newpage
+\section{Conclusión}
+
+La implementación del laboratorio permitió integrar una aplicación web dinámica en PHP con una base de datos MariaDB desplegada mediante Docker, cumpliendo con los requisitos de CRUD, persistencia y aislamiento de servicios. El uso de \texttt{docker compose} simplificó la orquestación del entorno y facilitó reproducir el sistema de manera consistente en distintos equipos.
+
+Durante el desarrollo se comprobó que la separación entre el contenedor de aplicación y el contenedor de base de datos mejora el mantenimiento de la solución, porque cada servicio cumple una responsabilidad específica y se comunica a través de una red virtual controlada. Además, el uso de volúmenes permitió conservar la información aun cuando los contenedores fueron reiniciados o recreados.
+
+En términos funcionales, la interfaz web entrega un flujo claro para crear, leer, actualizar y eliminar registros, lo que valida el objetivo principal del laboratorio.
+\newpage
+\appendix
+\section{Anexos}
+
+\subsection{Estructura del repositorio}
+
+\begin{lstlisting}[caption={Estructura de archivos del proyecto}]
+app/
+  index.php
+  Dockerfile
+db/
+  init.sql
+informe/
+  proyecto.tex
+  proyecto.pdf
+.env.example
+.gitignore
+docker-compose.yml
+README.md
+\end{lstlisting}
+
+\subsection{Configuración Docker}
+\begin{itemize}
+    \item \texttt{app/Dockerfile}: imagen de la aplicación PHP con Apache.
+    \item \texttt{docker-compose.yml}: orquestación de servicios, red, volumen y variables de entorno.
+    \item \texttt{db/init.sql}: script de inicialización de la base de datos.
+    \item \texttt{.env.example}: ejemplo de variables de entorno necesarias para ejecutar el proyecto.
+\end{itemize}
+
+\subsection{Enlaces}
+\begin{itemize}
+    \item Repositorio GitHub: \url{https://github.com/TomasTeihuel/lab-docker-crud}
+\end{itemize}
+
+\end{document}
